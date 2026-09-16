@@ -2,7 +2,8 @@ import streamlit as st
 
 from src.database.connection import execute_query
 from src.llm.sql_generator import generate_sql
-
+from src.sql.validator import validate_sql
+from src.llm.result_interpreter import interpret_result
 
 st.set_page_config(
     page_title="AI Data Analyst",
@@ -44,6 +45,15 @@ for message in st.session_state.messages:
                     language="sql"
                 )
 
+        if "result" in message:
+
+            with st.expander(
+                "View database result"
+            ):
+
+                st.write(
+                    message["result"])        
+
 
 question = st.chat_input(
     "Ask something about your business..."
@@ -77,12 +87,21 @@ if question:
                     question
                 )
 
-                result = execute_query(
-                    sql
-                )
+                isSafe , validation_message = validate_sql(sql)
+
+                if not isSafe:
+                    st.warning(validation_message)
+                    result = None
+                    answer = None
+                else:
+                    result = execute_query(sql)
+                    answer =  interpret_result(result=result, sql=sql, question=question)
+                    
+                    
 
 
-            st.write(result)
+                if answer is not None:
+                   st.write(answer)
 
 
             with st.expander(
@@ -98,8 +117,9 @@ if question:
             st.session_state.messages.append(
                 {
                     "role": "assistant",
-                    "content": str(result),
-                    "sql": sql
+                    "content": answer,
+                    "sql": sql,
+                    "result": str(result)
                 }
             )
 
