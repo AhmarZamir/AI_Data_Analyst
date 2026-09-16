@@ -1,18 +1,16 @@
 from src.database.connection import execute_query
+from src.llm.sql_generator import generate_sql
 
 
-query ="""
-SELECT
-    city,
-    COUNT(*)
-FROM customers
-GROUP BY city
-ORDER BY COUNT(*) DESC;
-"""
 
+question = "how many total customers are there from karachi?"
 
-results = execute_query(query)
+sql = generate_sql(question)
+print("Generated SQL Query:")
+print(sql)
+
+results = execute_query(sql)
 
 for row in results:
-    print(f"City: {row[0]}, Count: {row[1]}")
+    print(f"count: {row[0]}")
 
