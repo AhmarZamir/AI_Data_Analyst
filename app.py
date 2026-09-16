@@ -99,6 +99,7 @@ if question:
                     
                     
 
+                else:
 
                 if answer is not None:
                    st.write(answer)
@@ -112,6 +113,19 @@ if question:
                     sql,
                     language="sql"
                 )
+
+
+            if result is not None:
+
+                st.write(result)
+
+                assistant_message = str(result)
+
+            else:
+
+                st.warning(validation_message)
+
+                assistant_message = validation_message
 
 
             st.session_state.messages.append(
