@@ -2,6 +2,7 @@ import streamlit as st
 
 from src.database.connection import execute_query
 from src.llm.sql_generator import generate_sql
+from src.sql.validator import validate_sql
 
 
 st.set_page_config(
@@ -77,12 +78,19 @@ if question:
                     question
                 )
 
-                result = execute_query(
+                is_safe, validation_message = validate_sql(
                     sql
                 )
 
+                if is_safe:
 
-            st.write(result)
+                    result = execute_query(
+                        sql
+                    )
+
+                else:
+
+                    result = None
 
 
             with st.expander(
@@ -95,10 +103,23 @@ if question:
                 )
 
 
+            if result is not None:
+
+                st.write(result)
+
+                assistant_message = str(result)
+
+            else:
+
+                st.warning(validation_message)
+
+                assistant_message = validation_message
+
+
             st.session_state.messages.append(
                 {
                     "role": "assistant",
-                    "content": str(result),
+                    "content": assistant_message,
                     "sql": sql
                 }
             )
