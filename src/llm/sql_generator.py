@@ -1,7 +1,8 @@
 import os 
 from dotenv import load_dotenv
 from google import genai
-from src.retrieval.schema_retriever import retrieve_tables
+from src.retrieval.schema_retriever import retrieve_schema
+from src.semantic.metrics import format_business_metrics
 
 
 
@@ -13,12 +14,17 @@ client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 def generate_sql(question):
     schema = retrieve_schema(question)
 
+    business_metrics = format_business_metrics()
+
     prompt = f"""
         You are a PostgreSQL expert.
 
         Convert the user's question into a PostgreSQL query.
 
         Database schema: {schema}
+
+        Business definitions:{business_metrics}
+
 
         User question: {question}
 
