@@ -1,16 +1,30 @@
 from src.database.connection import execute_query
 from src.llm.sql_generator import generate_sql
+from src.database.schema import get_tables , get_columns , format_schema
 
 
 
-question = "Which city generated the highest revenue?"
 
-sql = generate_sql(question)
-print("Generated SQL Query:")
-print(sql)
+print("Available tables in the database:")
 
-results = execute_query(sql)
+for table in get_tables():
+    print(f" - {table}")
 
-for row in results:
-    print(row)
+print("\nAvailable columns in the database:")
+print(get_columns())
+
+
+print("\nFormatted database schema:")
+print(format_schema())
+ 
+#  question = "Which city generated the highest revenue?"
+
+# sql = generate_sql(question)
+# print("Generated SQL Query:")
+# print(sql)
+
+# results = execute_query(sql)
+
+# for row in results:
+#     print(row)
 

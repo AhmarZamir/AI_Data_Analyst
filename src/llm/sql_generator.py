@@ -1,6 +1,7 @@
 import os 
 from dotenv import load_dotenv
 from google import genai
+from src.database.schema import format_schema
 
 
 load_dotenv()
@@ -9,48 +10,7 @@ client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 
 def generate_sql(question):
-    schema = """
-    customers(
-        customer_id,
-        name,
-        email,
-        city,
-        country,
-        created_at
-    )
-
-    products(
-        product_id,
-        name,
-        category,
-        price
-    )
-
-    orders(
-        order_id,
-        customer_id,
-        status,
-        created_at
-    )
-
-    order_items(
-        order_item_id,
-        order_id,
-        product_id,
-        quantity,
-        unit_price
-    )
-
-    payments(
-        payment_id,
-        order_id,
-        amount,
-        payment_status,
-        payment_method,
-        paid_at
-    )
-
-    """
+    schema = format_schema()
 
     prompt = f"""
         You are a PostgreSQL expert.

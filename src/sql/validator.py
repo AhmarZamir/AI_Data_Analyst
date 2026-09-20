@@ -1,14 +1,9 @@
 from sqlglot import parse, exp
 from sqlglot.errors import ParseError
+from src.database.schema import get_table_names
 
 
-ALLOWED_TABLES = {
-    "customers",
-    "products",
-    "orders",
-    "order_items",
-    "payments"
-}
+ALLOWED_TABLES = get_table_names()
 
 
 FORBIDDEN_TYPES = (
