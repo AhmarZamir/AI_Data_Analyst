@@ -223,3 +223,112 @@ def get_table_names():
     return set(
         get_tables()
     )
+
+
+def get_table_documents():
+
+    columns = get_columns()
+    foreign_keys = get_foreign_keys()
+
+    documents = {}
+
+
+    for table_name, table_columns in columns.items():
+
+        lines = [
+            f"Table: {table_name}",
+            "Columns:"
+        ]
+
+
+        for column in table_columns:
+
+            lines.append(
+                f"- {column['name']} ({column['type']})"
+            )
+
+
+        relationships = []
+
+
+        for (
+            source_table,
+            source_column,
+            target_table,
+            target_column
+        ) in foreign_keys:
+
+            if source_table == table_name:
+
+                relationships.append(
+                    f"{source_table}.{source_column} -> "
+                    f"{target_table}.{target_column}"
+                )
+
+            elif target_table == table_name:
+
+                relationships.append(
+                    f"{source_table}.{source_column} -> "
+                    f"{target_table}.{target_column}"
+                )
+
+
+        if relationships:
+
+            lines.append(
+                "Relationships:"
+            )
+
+            for relationship in relationships:
+
+                lines.append(
+                    f"- {relationship}"
+                )
+
+
+        documents[table_name] = "\n".join(lines)
+
+
+    return documents
+
+
+def retrieve_schema(
+    question,
+    top_k=3
+):
+
+    results = retrieve_tables(
+        question,
+        top_k=top_k
+    )
+
+
+    retrieved_names = [
+        result["table"]
+        for result in results
+    ]
+
+
+    expanded_names = expand_related_tables(
+        retrieved_names
+    )
+
+
+    all_documents = get_table_documents()
+
+
+    selected_documents = []
+
+
+    for table_name in expanded_names:
+
+        if table_name in all_documents:
+
+            selected_documents.append(
+                all_documents[table_name]
+            )
+
+
+    return "\n\n".join(
+        selected_documents
+    )

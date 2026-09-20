@@ -4,19 +4,23 @@ from src.database.schema import get_tables , get_columns , format_schema
 
 
 
-
-print("Available tables in the database:")
-
-for table in get_tables():
-    print(f" - {table}")
-
-print("\nAvailable columns in the database:")
-print(get_columns())
+from src.retrieval.schema_retriever import retrieve_tables
 
 
-print("\nFormatted database schema:")
-print(format_schema())
- 
+question = "Which city generated the highest revenue?"
+
+
+results = retrieve_tables(
+    question
+)
+
+for result in results:
+
+    print(
+        result["table"],
+        result["score"]
+    )
+    
 #  question = "Which city generated the highest revenue?"
 
 # sql = generate_sql(question)

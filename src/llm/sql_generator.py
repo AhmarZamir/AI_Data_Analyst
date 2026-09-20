@@ -1,7 +1,8 @@
 import os 
 from dotenv import load_dotenv
 from google import genai
-from src.database.schema import format_schema
+from src.retrieval.schema_retriever import retrieve_tables
+
 
 
 load_dotenv()
@@ -10,7 +11,7 @@ client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 
 def generate_sql(question):
-    schema = format_schema()
+    schema = retrieve_schema(question)
 
     prompt = f"""
         You are a PostgreSQL expert.
