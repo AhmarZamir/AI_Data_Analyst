@@ -4,6 +4,7 @@ from sentence_transformers import SentenceTransformer, util
 from src.database.schema import get_table_documents , get_foreign_keys
 
 
+
 model = SentenceTransformer(
     "sentence-transformers/all-MiniLM-L6-v2"
 )

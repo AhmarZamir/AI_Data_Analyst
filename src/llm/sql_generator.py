@@ -1,7 +1,7 @@
 import os 
 from dotenv import load_dotenv
 from google import genai
-from src.retrieval.schema_retriever import retrieve_schema
+from src.retrieval.schema_retriever import retrieve_tables
 from src.semantic.metrics import format_business_metrics
 
 
@@ -12,7 +12,7 @@ client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 
 def generate_sql(question):
-    schema = retrieve_schema(question)
+    schema = retrieve_tables(question)
 
     business_metrics = format_business_metrics()
 

@@ -63,6 +63,22 @@ BUSINESS_METRICS = {
         )
     },
 
+    "completed order count": {
+
+    "description": (
+        "Number of successfully completed orders"
+    ),
+
+    "tables": [
+        "orders"
+    ],
+
+    "definition": (
+        "COUNT(orders.order_id) "
+        "WHERE orders.status = 'completed'"
+    )
+},
+
     "average order value": {
         "description": (
             "Average completed revenue per completed order"
