@@ -11,8 +11,9 @@ load_dotenv()
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 
-def generate_sql(question):
-    schema = retrieve_tables(question)
+def generate_sql(question , schema=None):
+    if schema is None:
+        schema = retrieve_tables(question)
 
     business_metrics = format_business_metrics()
 
