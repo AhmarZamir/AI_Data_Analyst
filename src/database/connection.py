@@ -23,11 +23,21 @@ def get_connection():
 def execute_query(query):
 
     connection = get_connection()
-    cursor = connection.cursor()
-    cursor.execute(query)
-    results = cursor.fetchall()
-    cursor.close()
-    connection.close()
 
-    return results
+    try:
 
+        with connection:
+
+            with connection.cursor() as cursor:
+
+                cursor.execute(
+                    "SET TRANSACTION READ ONLY"
+                )
+
+                cursor.execute(query)
+
+                return cursor.fetchall()
+
+    finally:
+
+        connection.close()

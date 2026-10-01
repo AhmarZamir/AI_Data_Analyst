@@ -1,11 +1,11 @@
-from typing import TypedDict, NotRequired, Any
+from typing import Any, NotRequired, TypedDict
 
 
 class AgentState(TypedDict):
 
     question: str
 
-    schema: NotRequired[str]
+    schema: NotRequired[Any]
 
     sql: NotRequired[str]
 
@@ -18,4 +18,7 @@ class AgentState(TypedDict):
     answer: NotRequired[str]
 
     error: NotRequired[str]
-    
+
+    db_error: NotRequired[str]
+
+    retry_count: NotRequired[int]

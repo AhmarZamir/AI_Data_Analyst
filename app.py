@@ -17,14 +17,10 @@ st.caption(
 )
 
 
-# Initialize conversation history
-
 if "messages" not in st.session_state:
 
     st.session_state.messages = []
 
-
-# Display previous messages
 
 for message in st.session_state.messages:
 
@@ -47,8 +43,6 @@ for message in st.session_state.messages:
 
                 st.write(message["result"])
 
-
-# Receive user question
 
 question = st.chat_input(
     "Ask something about your business..."
@@ -75,22 +69,22 @@ if question:
 
             with st.spinner("Analyzing your question..."):
 
-                # Execute the complete LangGraph workflow
-
                 graph_result = analyst_graph.invoke(
                     {
-                        "question": question
+                        "question": question,
+                        "retry_count": 0,
+                        "db_error": "",
+                        "error": ""
+                    },
+                    config={
+                        "recursion_limit": 20
                     }
                 )
 
             answer = graph_result["answer"]
-
             sql = graph_result.get("sql")
-
             result = graph_result.get("result")
-
             error = graph_result.get("error")
-
 
             if error:
 
@@ -99,7 +93,6 @@ if question:
             else:
 
                 st.write(answer)
-
 
             if sql:
 
@@ -110,15 +103,11 @@ if question:
                         language="sql"
                     )
 
-
-            if result is not None:
+            if result is not None and not error:
 
                 with st.expander("View database result"):
 
                     st.write(result)
-
-
-            # Save response in session history
 
             message = {
                 "role": "assistant",
@@ -129,7 +118,7 @@ if question:
 
                 message["sql"] = sql
 
-            if result is not None:
+            if result is not None and not error:
 
                 message["result"] = result
 
