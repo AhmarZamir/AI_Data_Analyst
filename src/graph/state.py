@@ -22,3 +22,13 @@ class AgentState(TypedDict):
     db_error: NotRequired[str]
 
     retry_count: NotRequired[int]
+
+    is_complex: NotRequired[bool]
+
+    plan: NotRequired[list[str]]
+
+    current_step: NotRequired[int]
+
+    step_results: NotRequired[list[Any]]
+
+    active_question: NotRequired[str]

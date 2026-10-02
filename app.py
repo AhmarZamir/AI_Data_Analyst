@@ -28,6 +28,19 @@ for message in st.session_state.messages:
 
         st.write(message["content"])
 
+        if message.get("plan"):
+
+            with st.expander("View analysis plan"):
+
+                for index, step in enumerate(
+                    message["plan"],
+                    start=1
+                ):
+
+                    st.write(
+                        f"{index}. {step}"
+                    )
+
         if message.get("sql"):
 
             with st.expander("View generated SQL"):
@@ -67,7 +80,9 @@ if question:
 
         try:
 
-            with st.spinner("Analyzing your question..."):
+            with st.spinner(
+                "Analyzing your question..."
+            ):
 
                 graph_result = analyst_graph.invoke(
                     {
@@ -77,7 +92,7 @@ if question:
                         "error": ""
                     },
                     config={
-                        "recursion_limit": 20
+                        "recursion_limit": 50
                     }
                 )
 
@@ -85,6 +100,11 @@ if question:
             sql = graph_result.get("sql")
             result = graph_result.get("result")
             error = graph_result.get("error")
+            plan = graph_result.get("plan", [])
+            is_complex = graph_result.get(
+                "is_complex",
+                False
+            )
 
             if error:
 
@@ -94,18 +114,41 @@ if question:
 
                 st.write(answer)
 
-            if sql:
+            if plan:
 
-                with st.expander("View generated SQL"):
+                with st.expander(
+                    "View analysis plan"
+                ):
+
+                    for index, step in enumerate(
+                        plan,
+                        start=1
+                    ):
+
+                        st.write(
+                            f"{index}. {step}"
+                        )
+
+            if sql and not is_complex:
+
+                with st.expander(
+                    "View generated SQL"
+                ):
 
                     st.code(
                         sql,
                         language="sql"
                     )
 
-            if result is not None and not error:
+            if (
+                result is not None
+                and not error
+                and not is_complex
+            ):
 
-                with st.expander("View database result"):
+                with st.expander(
+                    "View database result"
+                ):
 
                     st.write(result)
 
@@ -114,15 +157,25 @@ if question:
                 "content": answer
             }
 
-            if sql:
+            if plan:
+
+                message["plan"] = plan
+
+            if sql and not is_complex:
 
                 message["sql"] = sql
 
-            if result is not None and not error:
+            if (
+                result is not None
+                and not error
+                and not is_complex
+            ):
 
                 message["result"] = result
 
-            st.session_state.messages.append(message)
+            st.session_state.messages.append(
+                message
+            )
 
 
         except Exception as error:
