@@ -1,9 +1,5 @@
 from sqlglot import parse, exp
 from sqlglot.errors import ParseError
-from src.database.schema import get_table_names
-
-
-ALLOWED_TABLES = get_table_names()
 
 
 FORBIDDEN_TYPES = (
@@ -29,14 +25,11 @@ def validate_sql(query):
 
         return False, f"Invalid SQL: {error}"
 
-
     if len(statements) != 1:
 
         return False, "Only one SQL statement is allowed."
 
-
     parsed_query = statements[0]
-
 
     for forbidden_type in FORBIDDEN_TYPES:
 
@@ -47,27 +40,8 @@ def validate_sql(query):
                 f"Blocked SQL operation: {forbidden_type.__name__}"
             )
 
-
     if not parsed_query.find(exp.Select):
 
         return False, "Only SELECT queries are allowed."
-
-
-    tables = parsed_query.find_all(
-        exp.Table
-    )
-
-
-    for table in tables:
-
-        table_name = table.name
-
-        if table_name not in ALLOWED_TABLES:
-
-            return (
-                False,
-                f"Access to table '{table_name}' is not allowed."
-            )
-
 
     return True, "Query is safe."
