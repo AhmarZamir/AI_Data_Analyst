@@ -28,6 +28,16 @@ for message in st.session_state.messages:
 
         st.write(message["content"])
 
+        if message.get("resolved_question"):
+
+            with st.expander(
+                "View interpreted question"
+            ):
+
+                st.write(
+                    message["resolved_question"]
+                )
+
         if message.get("plan"):
 
             with st.expander("View analysis plan"):
@@ -64,6 +74,14 @@ question = st.chat_input(
 
 if question:
 
+    conversation_history = [
+        {
+            "role": message["role"],
+            "content": message["content"]
+        }
+        for message in st.session_state.messages
+    ]
+
     st.session_state.messages.append(
         {
             "role": "user",
@@ -87,6 +105,7 @@ if question:
                 graph_result = analyst_graph.invoke(
                     {
                         "question": question,
+                        "conversation_history": conversation_history,
                         "retry_count": 0,
                         "db_error": "",
                         "error": ""
@@ -105,6 +124,9 @@ if question:
                 "is_complex",
                 False
             )
+            resolved_question = graph_result.get(
+                "resolved_question"
+            )
 
             if error:
 
@@ -113,6 +135,19 @@ if question:
             else:
 
                 st.write(answer)
+
+            if (
+                resolved_question
+                and resolved_question != question
+            ):
+
+                with st.expander(
+                    "View interpreted question"
+                ):
+
+                    st.write(
+                        resolved_question
+                    )
 
             if plan:
 
@@ -156,6 +191,15 @@ if question:
                 "role": "assistant",
                 "content": answer
             }
+
+            if (
+                resolved_question
+                and resolved_question != question
+            ):
+
+                message["resolved_question"] = (
+                    resolved_question
+                )
 
             if plan:
 

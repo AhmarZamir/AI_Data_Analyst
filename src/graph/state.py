@@ -32,3 +32,9 @@ class AgentState(TypedDict):
     step_results: NotRequired[list[Any]]
 
     active_question: NotRequired[str]
+
+    conversation_history: NotRequired[
+        list[dict[str, str]]
+    ]
+
+    resolved_question: NotRequired[str]

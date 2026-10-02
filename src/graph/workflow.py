@@ -4,6 +4,7 @@ from langgraph.graph import END, START, StateGraph
 from src.database.connection import execute_query
 from src.graph.state import AgentState
 from src.llm.analysis_synthesizer import synthesize_analysis
+from src.llm.context_resolver import resolve_question
 from src.llm.query_planner import create_plan
 from src.llm.result_interpreter import interpret_result
 from src.llm.sql_generator import generate_sql
@@ -15,10 +16,30 @@ from src.sql.validator import validate_sql
 MAX_RETRIES = 2
 
 
+def resolve_question_node(state: AgentState):
+
+    resolved_question = resolve_question(
+        question=state["question"],
+        conversation_history=state.get(
+            "conversation_history",
+            []
+        )
+    )
+
+    return {
+        "resolved_question": resolved_question
+    }
+
+
 def retrieve_schema_node(state: AgentState):
 
-    schema = retrieve_tables(
+    question = state.get(
+        "resolved_question",
         state["question"]
+    )
+
+    schema = retrieve_tables(
+        question
     )
 
     return {
@@ -28,8 +49,13 @@ def retrieve_schema_node(state: AgentState):
 
 def plan_query_node(state: AgentState):
 
+    question = state.get(
+        "resolved_question",
+        state["question"]
+    )
+
     plan = create_plan(
-        question=state["question"],
+        question=question,
         schema=state["schema"]
     )
 
@@ -56,9 +82,14 @@ def prepare_step_node(state: AgentState):
 
 def generate_sql_node(state: AgentState):
 
+    base_question = state.get(
+        "resolved_question",
+        state["question"]
+    )
+
     question = state.get(
         "active_question",
-        state["question"]
+        base_question
     )
 
     sql = generate_sql(
@@ -111,9 +142,14 @@ def repair_sql_node(state: AgentState):
         0
     )
 
+    base_question = state.get(
+        "resolved_question",
+        state["question"]
+    )
+
     question = state.get(
         "active_question",
-        state["question"]
+        base_question
     )
 
     corrected_sql = repair_sql(
@@ -154,8 +190,13 @@ def store_step_result_node(state: AgentState):
 
 def combine_results_node(state: AgentState):
 
+    question = state.get(
+        "resolved_question",
+        state["question"]
+    )
+
     answer = synthesize_analysis(
-        question=state["question"],
+        question=question,
         step_results=state["step_results"]
     )
 
@@ -167,8 +208,13 @@ def combine_results_node(state: AgentState):
 
 def interpret_result_node(state: AgentState):
 
+    question = state.get(
+        "resolved_question",
+        state["question"]
+    )
+
     answer = interpret_result(
-        question=state["question"],
+        question=question,
         sql=state["sql"],
         result=state["result"]
     )
@@ -263,6 +309,11 @@ def build_graph():
     builder = StateGraph(AgentState)
 
     builder.add_node(
+        "resolve_question",
+        resolve_question_node
+    )
+
+    builder.add_node(
         "retrieve_schema",
         retrieve_schema_node
     )
@@ -324,6 +375,11 @@ def build_graph():
 
     builder.add_edge(
         START,
+        "resolve_question"
+    )
+
+    builder.add_edge(
+        "resolve_question",
         "retrieve_schema"
     )
 
