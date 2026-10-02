@@ -1,6 +1,62 @@
+import pandas as pd
 import streamlit as st
 
 from src.graph.workflow import analyst_graph
+
+
+def render_result(result):
+
+    if (
+        isinstance(result, dict)
+        and "columns" in result
+        and "rows" in result
+    ):
+
+        dataframe = pd.DataFrame(
+            result["rows"],
+            columns=result["columns"]
+        )
+
+        st.dataframe(
+            dataframe,
+            use_container_width=True
+        )
+
+        return
+
+    st.write(result)
+
+
+def render_visualization(chart):
+
+    data = pd.DataFrame(
+        chart["data"]
+    )
+
+    if data.empty:
+        return
+
+    st.markdown(
+        f"**{chart['title']}**"
+    )
+
+    chart_data = data.set_index(
+        chart["x"]
+    )[[chart["y"]]]
+
+    if chart["type"] == "line":
+
+        st.line_chart(
+            chart_data,
+            use_container_width=True
+        )
+
+    else:
+
+        st.bar_chart(
+            chart_data,
+            use_container_width=True
+        )
 
 
 st.set_page_config(
@@ -28,6 +84,13 @@ for message in st.session_state.messages:
 
         st.write(message["content"])
 
+        for chart in message.get(
+            "visualizations",
+            []
+        ):
+
+            render_visualization(chart)
+
         if message.get("resolved_question"):
 
             with st.expander(
@@ -40,7 +103,9 @@ for message in st.session_state.messages:
 
         if message.get("plan"):
 
-            with st.expander("View analysis plan"):
+            with st.expander(
+                "View analysis plan"
+            ):
 
                 for index, step in enumerate(
                     message["plan"],
@@ -53,7 +118,9 @@ for message in st.session_state.messages:
 
         if message.get("sql"):
 
-            with st.expander("View generated SQL"):
+            with st.expander(
+                "View generated SQL"
+            ):
 
                 st.code(
                     message["sql"],
@@ -62,9 +129,13 @@ for message in st.session_state.messages:
 
         if "result" in message:
 
-            with st.expander("View database result"):
+            with st.expander(
+                "View database result"
+            ):
 
-                st.write(message["result"])
+                render_result(
+                    message["result"]
+                )
 
 
 question = st.chat_input(
@@ -119,7 +190,14 @@ if question:
             sql = graph_result.get("sql")
             result = graph_result.get("result")
             error = graph_result.get("error")
-            plan = graph_result.get("plan", [])
+            plan = graph_result.get(
+                "plan",
+                []
+            )
+            visualizations = graph_result.get(
+                "visualizations",
+                []
+            )
             is_complex = graph_result.get(
                 "is_complex",
                 False
@@ -135,6 +213,10 @@ if question:
             else:
 
                 st.write(answer)
+
+            for chart in visualizations:
+
+                render_visualization(chart)
 
             if (
                 resolved_question
@@ -185,12 +267,18 @@ if question:
                     "View database result"
                 ):
 
-                    st.write(result)
+                    render_result(result)
 
             message = {
                 "role": "assistant",
                 "content": answer
             }
+
+            if visualizations:
+
+                message["visualizations"] = (
+                    visualizations
+                )
 
             if (
                 resolved_question

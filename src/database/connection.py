@@ -36,7 +36,17 @@ def execute_query(query):
 
                 cursor.execute(query)
 
-                return cursor.fetchall()
+                rows = cursor.fetchall()
+
+                columns = [
+                    description[0]
+                    for description in cursor.description
+                ]
+
+                return {
+                    "columns": columns,
+                    "rows": rows
+                }
 
     finally:
 

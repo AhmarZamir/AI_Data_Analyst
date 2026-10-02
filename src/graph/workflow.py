@@ -11,6 +11,7 @@ from src.llm.sql_generator import generate_sql
 from src.llm.sql_repair import repair_sql
 from src.retrieval.schema_retriever import retrieve_tables
 from src.sql.validator import validate_sql
+from src.visualization.chart_builder import build_chart
 
 
 MAX_RETRIES = 2
@@ -38,9 +39,7 @@ def retrieve_schema_node(state: AgentState):
         state["question"]
     )
 
-    schema = retrieve_tables(
-        question
-    )
+    schema = retrieve_tables(question)
 
     return {
         "schema": schema
@@ -130,7 +129,10 @@ def execute_sql_node(state: AgentState):
     except psycopg2.Error as error:
 
         return {
-            "result": [],
+            "result": {
+                "columns": [],
+                "rows": []
+            },
             "db_error": str(error)
         }
 
@@ -222,6 +224,46 @@ def interpret_result_node(state: AgentState):
     return {
         "answer": answer,
         "error": ""
+    }
+
+
+def build_visualization_node(state: AgentState):
+
+    visualizations = []
+
+    if state.get("is_complex", False):
+
+        for step in state.get(
+            "step_results",
+            []
+        ):
+
+            chart = build_chart(
+                result=step["result"],
+                question=step["question"],
+                title=step["question"]
+            )
+
+            if chart:
+                visualizations.append(chart)
+
+    else:
+
+        question = state.get(
+            "resolved_question",
+            state["question"]
+        )
+
+        chart = build_chart(
+            result=state.get("result"),
+            question=question
+        )
+
+        if chart:
+            visualizations.append(chart)
+
+    return {
+        "visualizations": visualizations
     }
 
 
@@ -364,6 +406,11 @@ def build_graph():
     )
 
     builder.add_node(
+        "build_visualization",
+        build_visualization_node
+    )
+
+    builder.add_node(
         "reject_sql",
         reject_sql_node
     )
@@ -443,11 +490,16 @@ def build_graph():
 
     builder.add_edge(
         "interpret_result",
-        END
+        "build_visualization"
     )
 
     builder.add_edge(
         "combine_results",
+        "build_visualization"
+    )
+
+    builder.add_edge(
+        "build_visualization",
         END
     )
 

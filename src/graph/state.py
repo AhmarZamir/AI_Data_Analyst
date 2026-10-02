@@ -13,7 +13,7 @@ class AgentState(TypedDict):
 
     validation_message: NotRequired[str]
 
-    result: NotRequired[list[Any]]
+    result: NotRequired[Any]
 
     answer: NotRequired[str]
 
@@ -38,3 +38,7 @@ class AgentState(TypedDict):
     ]
 
     resolved_question: NotRequired[str]
+
+    visualizations: NotRequired[
+        list[dict[str, Any]]
+    ]

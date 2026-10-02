@@ -2,6 +2,7 @@ psycopg2-binary
 python-dotenv
 google-genai
 streamlit
+pandas
 sqlglot
 sentence-transformers
 langgraph
